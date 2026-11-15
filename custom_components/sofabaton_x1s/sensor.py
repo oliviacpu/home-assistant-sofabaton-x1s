@@ -36,7 +36,6 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities):
         SofabatonActivitySensor(hub, entry),
         SofabatonRecordedKeypressSensor(hub, entry),
         SofabatonIpCommandsSensor(hub, entry),
-        SofabatonFirmwareSensor(hub, entry, "remote_firmware"),
         SofabatonFirmwareSensor(hub, entry, "wifi_firmware"),
     ]
     if infrared_platform_available():
@@ -515,7 +514,7 @@ class SofabatonIrInterceptSensor(SensorEntity):
 
 
 class SofabatonFirmwareSensor(SensorEntity):
-    """Fork: remote or Wi-Fi module firmware from the version exchange.
+    """Fork: the hub's Wi-Fi module firmware from the version exchange.
 
     Unknown until the hub has answered one (it is asked at each initial
     sync; the official app's version screen is captured too). Re-read when

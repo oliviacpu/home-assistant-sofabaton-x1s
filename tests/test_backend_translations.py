@@ -121,7 +121,6 @@ def test_all_entity_names_use_translation_keys() -> None:
             "ip_commands",
             "ir_intercept",
             "recorded_keypress",
-            "remote_firmware",
             "wifi_firmware",
         },
         "switch": {"hex_logging", "proxy", "wifi_device"},
@@ -136,7 +135,7 @@ def test_all_entity_names_use_translation_keys() -> None:
         "infrared": 1,
         "remote": 1,
         "select": 1,
-        # Fork: + the firmware sensor class (two entities).
+        # Fork: + the Wi-Fi firmware sensor.
         "sensor": 6,
         "switch": 3,
         "text": 2,

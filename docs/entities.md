@@ -49,8 +49,7 @@ For Wifi Commands, Wifi Events, Hub Events, Activity Events, and a sensor automa
 | Text     | `text.<hub>_ip_address`                | Override the stored hub IP; disabled by default                                                                                     |
 | Text     | `text.<hub>_home_assistant_ip_address` | View or override the Home Assistant IPv4 address advertised to this hub; disabled by default                                        |
 | Sensor   | `sensor.<hub>_ir_intercept`            | Last command intercepted by the infrared emitter entity (HA 2026.8 or newer); disabled by default                                   |
-| Sensor   | `sensor.<hub>_remote_firmware`         | Firmware of the physical remote (X1/X1S), from the hub's version exchange; unknown until the hub has answered one                   |
-| Sensor   | `sensor.<hub>_wifi_firmware`           | Firmware of the hub's Wi-Fi module (`major.minor.patch`), from the same exchange                                                    |
+| Sensor   | `sensor.<hub>_wifi_firmware`           | Firmware of the hub's Wi-Fi module (`major.minor.patch`), from its version exchange; unknown until the hub has answered one          |
 
 The **Home Assistant IP address** entity shows the local address selected for
 that hub. Enable it on the hub's device page to set an override; the address
