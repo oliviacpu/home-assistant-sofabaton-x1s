@@ -319,7 +319,7 @@ class SofabatonHub(HubProxyEventsMixin, WifiDeployMixin, HubOpsMixin, HubFetchMi
             self.production_batch,
             self.hub_firmware_version,
         )
-        # Fork: the Wi-Fi and remote firmware ride on a separate version
+        # Fork: the Wi-Fi module's firmware rides on a separate version
         # exchange; ask once here, before the catalog bursts start (the hub
         # drops a request sent while a burst is still streaming).
         version_before = self._proxy.get_version_info()
@@ -425,7 +425,7 @@ class SofabatonHub(HubProxyEventsMixin, WifiDeployMixin, HubOpsMixin, HubFetchMi
         return list(self._app_activations)
 
     def get_version_info(self) -> dict[str, Any]:
-        """Wi-Fi and remote firmware from the last version exchange (fork)."""
+        """Wi-Fi module firmware from the last version exchange (fork)."""
 
         return self._proxy.get_version_info()
 

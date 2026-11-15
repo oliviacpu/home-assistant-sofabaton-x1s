@@ -56,15 +56,18 @@ Newest first.
 - **Live check:** an X1S accepting more than 100 records is not benched yet (upstream validated 1..100).
 - **Upstream:** not sent.
 
-### Remote and Wi-Fi firmware sensors (2026-11-15)
-- **What it adds:** diagnostic `sensor.<hub>_remote_firmware` (X1/X1S) and `sensor.<hub>_wifi_firmware`. Upstream
-  documents the version exchange (`REQ_VERSION` 0x0058 → `WIFI_FW` 0x0359 + `INFO_BANNER` 0x112F) but never sends or
-  decodes it, so neither version was visible; the device registry only shows the hub firmware from the banner.
-- **Change:** `lib/proxy_version_info.py` (new mixin; `x1_proxy.py` stays under its 2000-line budget) decodes both
-  frames, `VersionInfoHandler` in `lib/opcode_handlers.py` feeds it from every H→A frame (so the official app's version
+### Wi-Fi firmware sensor (2026-11-15)
+- **What it adds:** diagnostic `sensor.<hub>_wifi_firmware`, the hub's Wi-Fi module firmware. Upstream documents the
+  version exchange (`REQ_VERSION` 0x0058 → `WIFI_FW` 0x0359) but never sends or decodes it; the device registry only
+  shows the hub firmware from the banner.
+- **Change:** `lib/proxy_version_info.py` (new mixin; `x1_proxy.py` stays under its 2000-line budget) decodes the
+  frame, `VersionInfoHandler` in `lib/opcode_handlers.py` feeds it from every H→A frame (so the official app's version
   screen is captured too), and `_async_initial_sync` in `hub.py` asks once, before the catalog bursts. The engine
-  methods are triaged as engine-only in `lib/aio.py`. Sensors in `sensor.py`, names in `translations/en.json`,
+  methods are triaged as engine-only in `lib/aio.py`. Sensor in `sensor.py`, name in `translations/en.json`,
   `docs/entities.md`. Tests: `tests/test_version_info.py`.
+- **Live (X1S, hub firmware 5, 2026-11-15):** answers with `WIFI_FW` 2.1.5 only. The `INFO_BANNER` the docs list next,
+  with the remote's firmware at `payload[12]`, never came, so the first release's remote-firmware sensor (always
+  unknown, and a 2 s wait at every start) was removed in `oliviacpu-2026.11.15.3`.
 - **Upstream:** not sent.
 
 ### `backup_bundle` can save the bundle to disk (2026-11-15)

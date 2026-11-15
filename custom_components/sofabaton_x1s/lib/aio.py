@@ -3627,8 +3627,8 @@ _R_REMOTE_SYNC_BENCH = (
     "no facade feature uses them until that form is validated"
 )
 _R_FORK_VERSION = (
-    "fork: Wi-Fi and remote firmware for the Home Assistant diagnostic "
-    "sensors (FORK.md); not part of upstream's facade"
+    "fork: Wi-Fi module firmware for the Home Assistant diagnostic "
+    "sensor (FORK.md); not part of upstream's facade"
 )
 _R_RF_CODES = (
     "RF learn and one-shot play for the Home Assistant payload editor; the "

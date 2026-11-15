@@ -17,7 +17,6 @@ from .macros import (
     parse_macro_records_from_burst,
 )
 from .protocol_const import (
-    OP_INFO_BANNER,
     OP_WIFI_FW,
     BUTTONNAME_BY_CODE,
     ButtonName,
@@ -134,9 +133,9 @@ class BannerInfoHandler(BaseFrameHandler):
         frame.proxy.record_banner_payload(frame.opcode, frame.payload)
 
 
-@register_handler(opcodes=(OP_WIFI_FW, OP_INFO_BANNER), directions=("H→A",))
+@register_handler(opcodes=(OP_WIFI_FW,), directions=("H→A",))
 class VersionInfoHandler(BaseFrameHandler):
-    """Fork: capture the Wi-Fi and remote firmware of a version exchange."""
+    """Fork: capture the Wi-Fi firmware of a version exchange."""
 
     def handle(self, frame: FrameContext) -> None:
         frame.proxy.record_version_payload(frame.opcode, frame.payload)
