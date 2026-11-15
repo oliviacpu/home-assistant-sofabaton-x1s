@@ -169,7 +169,17 @@ async def _async_handle_backup_bundle(call: ServiceCall):
         )
     )
     _LOGGER.info("[%s] Saved hub bundle to %s (pruned %d)", DOMAIN, saved["saved_path"], len(saved["pruned"]))
-    return {**bundle, **saved}
+    # The bundle is on disk; return a summary so a scheduled backup doesn't
+    # copy the whole bundle (hundreds of kB) into every stored trace.
+    return {
+        "kind": bundle.get("kind"),
+        "schema_version": bundle.get("schema_version"),
+        "captured_at": bundle.get("captured_at"),
+        "complete": bundle.get("complete"),
+        "devices": len(bundle.get("devices") or []),
+        "activities": len(bundle.get("activities") or []),
+        **saved,
+    }
 
 
 @runtime._hub_write_service(persist=False)

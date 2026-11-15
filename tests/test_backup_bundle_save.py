@@ -110,7 +110,17 @@ def test_backup_bundle_save_writes_and_reports_the_path(monkeypatch, tmp_path):
 
     assert result["saved_path"].startswith(str(tmp_path / "sofabaton-backups" / "hub" / "d70184064588-"))
     assert result["pruned"] == []
-    assert result["schema_version"] == 5
+    # A summary, not the bundle: the file holds the bundle itself.
+    assert result == {
+        "kind": "hub_bundle",
+        "schema_version": 5,
+        "captured_at": None,
+        "complete": True,
+        "devices": 0,
+        "activities": 0,
+        "saved_path": result["saved_path"],
+        "pruned": [],
+    }
     assert json.loads(open(result["saved_path"], encoding="utf-8").read()) == BUNDLE
 
 
