@@ -40,6 +40,16 @@ tag plus the changes listed below. Upstream's README, `CONTRIBUTING.md` and `doc
 
 Newest first.
 
+### `backup_bundle` can save the bundle to disk (2026-11-15)
+- **What it adds:** `save: true` writes the bundle to `<config>/sofabaton-backups/hub/<hub MAC>-<UTC time>.json`
+  (mode 0600, written to a temporary name and renamed) and `keep: N` deletes that hub's older files there. Upstream
+  only returns the bundle, and an automation has no built-in way to write a response to a file, so scheduled backups
+  weren't possible. A bundle that isn't `complete` (the Sofabaton app holding the hub, for one) is refused with an
+  error instead of being saved as a backup. Without `save` the action behaves exactly as upstream's.
+- **Change:** `bundle_files.py` (new, no Home Assistant imports), `_async_handle_backup_bundle` in `services.py`,
+  `services.yaml`, `translations/en.json`, `docs/actions.md`. Tests: `tests/test_backup_bundle_save.py`.
+- **Upstream:** not sent.
+
 ### Event entities for remote presses and hub transitions (2026-11-15)
 - **What it adds:** `event.<hub>_button_press` fires on every Wifi Command or Wifi Event press (`short`/`long`, with
   device, command and transport). `event.<hub>_hub_event` fires on `activity_start`, `activity_stop`, `power_off` and

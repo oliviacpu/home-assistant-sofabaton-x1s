@@ -9,13 +9,15 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Mapping
+from functools import partial
+from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlsplit
 
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN
+from .const import CONF_MAC, DOMAIN
 from .command_config import (
     CommandConfigStore,
     is_wifi_events_device_key,
@@ -30,6 +32,7 @@ from .lib.device_class_profiles import supported_create_classes
 from .lib.devices import validate_appearance
 from .lib.payloads import NetworkCommand
 from .lib.protocol_const import DEVICE_CLASS_WIFI_IP, normalize_device_class
+from . import bundle_files
 from . import runtime
 from . import entity_sync
 from .ws_backup import (
@@ -135,7 +138,35 @@ async def _async_handle_backup_bundle(call: ServiceCall):
         raise ValueError("Could not resolve Sofabaton hub from service call")
 
     device_ids = _validate_backup_device_ids(call.data.get("device_ids"))
-    return await hub.async_backup_hub(device_ids=device_ids)
+    # Fork: ``save`` writes the bundle under <config>/sofabaton-backups/hub
+    # and ``keep`` prunes this hub's older files there. Both are off unless
+    # set, so the plain call behaves as upstream's.
+    save = bool(call.data.get("save", False))
+    keep = bundle_files.validate_keep(call.data.get("keep"))
+    if keep is not None and not save:
+        raise ValueError("keep only applies together with save: true")
+
+    bundle = await hub.async_backup_hub(device_ids=device_ids)
+    if not save:
+        return bundle
+    if not isinstance(bundle, dict) or not bundle.get("complete"):
+        raise HomeAssistantError(
+            "The hub bundle is incomplete, so it was not saved: some reads did not "
+            "finish (is the Sofabaton app connected?)"
+        )
+    entry = hass.config_entries.async_get_entry(hub.entry_id)
+    mac = hub.mac or (entry.data.get(CONF_MAC) if entry is not None else "") or ""
+    saved = await hass.async_add_executor_job(
+        partial(
+            bundle_files.save_bundle,
+            Path(hass.config.path(*bundle_files.BUNDLE_SUBDIR)),
+            mac,
+            bundle,
+            keep=keep,
+        )
+    )
+    _LOGGER.info("[%s] Saved hub bundle to %s (pruned %d)", DOMAIN, saved["saved_path"], len(saved["pruned"]))
+    return {**bundle, **saved}
 
 
 @runtime._hub_write_service(persist=False)

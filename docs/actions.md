@@ -795,6 +795,8 @@ backup.
 | --------- | ---- | :------: | ----------- |
 | `device` | HA Device | Yes | Your Sofabaton hub. |
 | `device_ids` | list of int (1-255) | No | Devices to back up. Omit (or pass an empty list) to back up the whole hub (all devices + all activities). When supplied, activities are not included. |
+| `save` | bool | No | Also write the bundle to `<config>/sofabaton-backups/hub/<hub MAC>-<UTC time>.json` (owner-readable only). An incomplete bundle is refused with an error and nothing is written. Default `false`. |
+| `keep` | int (1-1000) | No | With `save`: keep this many of the hub's saved bundles in that folder and delete the older ones. Only files named like the action's own are touched. Omit to keep all. |
 
 **Response (top-level fields)**
 
@@ -807,12 +809,16 @@ backup.
 | `hub` | `{entry_id, name, version}` of the source hub. |
 | `devices` | List of per-device backup payloads. |
 | `activities` | List of per-activity backup payloads. Empty when `device_ids` was supplied. |
+| `saved_path` | With `save`: the file written. |
+| `pruned` | With `save`: the files `keep` deleted. |
 
 ```yaml
 action: sofabaton_x1s.backup_bundle
 data:
   device: 89c3874a93f1e9ee0f49e24a2710535e
   # device_ids: [5, 6, 7]   # uncomment to back up only these devices
+  # save: true              # also write it to sofabaton-backups/hub/
+  # keep: 8                 # and keep only the newest 8 there
 response_variable: bundle
 ```
 

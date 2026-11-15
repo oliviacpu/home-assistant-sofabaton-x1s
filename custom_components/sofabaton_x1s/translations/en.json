@@ -235,7 +235,7 @@
   "services": {
     "backup_bundle": {
       "name": "Back up hub bundle",
-      "description": "Returns a `hub_bundle` JSON payload. Omit device IDs to back up all devices and activities, or provide device IDs to back up only those devices.",
+      "description": "Returns a `hub_bundle` JSON payload. Omit device IDs to back up all devices and activities, or provide device IDs to back up only those devices. With Save, the bundle is also written to `sofabaton-backups/hub/` in the configuration folder.",
       "fields": {
         "device": {
           "name": "Sofabaton hub",
@@ -244,6 +244,14 @@
         "device_ids": {
           "name": "Device IDs",
           "description": "Optional list of device IDs from 1 through 255. Omit it or provide an empty list to back up the whole hub."
+        },
+        "save": {
+          "name": "Save to disk",
+          "description": "Also write the bundle to `sofabaton-backups/hub/<hub MAC>-<UTC time>.json` in the Home Assistant configuration folder. An incomplete bundle (for example while the Sofabaton app holds the hub) is refused and not written."
+        },
+        "keep": {
+          "name": "Keep",
+          "description": "With Save: how many of this hub's saved bundles to keep. Older ones in that folder are deleted after the new one is written. Omit to keep all."
         }
       }
     },
