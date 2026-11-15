@@ -16,6 +16,7 @@ from .const import (
     infrared_platform_available,
     signal_activity,
     signal_buttons,
+    signal_client,
     signal_devices,
     signal_commands,
     signal_hub,
@@ -35,6 +36,8 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities):
         SofabatonActivitySensor(hub, entry),
         SofabatonRecordedKeypressSensor(hub, entry),
         SofabatonIpCommandsSensor(hub, entry),
+        SofabatonFirmwareSensor(hub, entry, "remote_firmware"),
+        SofabatonFirmwareSensor(hub, entry, "wifi_firmware"),
     ]
     if infrared_platform_available():
         # Only meaningful alongside the emitter entity that feeds it.
@@ -509,3 +512,41 @@ class SofabatonIrInterceptSensor(SensorEntity):
             "count": last["count"],
             "recent": recent,
         }
+
+
+class SofabatonFirmwareSensor(SensorEntity):
+    """Fork: remote or Wi-Fi module firmware from the version exchange.
+
+    Unknown until the hub has answered one (it is asked at each initial
+    sync; the official app's version screen is captured too). Re-read when
+    the hub or the app connection changes, the moments a new answer can
+    have arrived.
+    """
+
+    _attr_should_poll = False
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, hub: SofabatonHub, entry: ConfigEntry, key: str) -> None:
+        self._hub = hub
+        self._entry = entry
+        self._key = key
+        self._attr_translation_key = key
+        self._attr_unique_id = f"{entry.data[CONF_MAC]}_{key}"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        return hub_device_info(self._hub, self._entry)
+
+    async def async_added_to_hass(self) -> None:
+        for sig in (signal_hub(self._hub.entry_id), signal_client(self._hub.entry_id)):
+            self.async_on_remove(async_dispatcher_connect(self.hass, sig, self._handle_update))
+
+    @callback
+    def _handle_update(self) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self):
+        value = self._hub.get_version_info().get(self._key)
+        return None if value is None else str(value)

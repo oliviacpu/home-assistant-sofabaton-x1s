@@ -85,6 +85,7 @@ from .state_helpers import (
 from .deframer import Deframer
 from .write_batch import WriteBatchMixin
 from .proxy_x2_remotes import X2RemotesMixin
+from .proxy_version_info import VersionInfoMixin
 from .transport_bridge import TransportBridge
 from .proxy_restore import RestoreMixin
 from .proxy_wifi_device import WifiDeviceMixin
@@ -261,7 +262,7 @@ def _normalize_mdns_instance(name: str) -> str:
 # ============================================================================
 # Proxy
 # ============================================================================
-class X1Proxy(FrameDecodeMixin, IrBlobMixin, CatalogMixin, ExchangeMixin, AckWaitersMixin, ActivityOpsMixin, ActivitySyncMixin, CacheBackupMixin, WifiDeviceMixin, HubMqttMixin, RestoreMixin, BackupExportMixin, WriteBatchMixin, X2RemotesMixin):
+class X1Proxy(FrameDecodeMixin, IrBlobMixin, CatalogMixin, ExchangeMixin, AckWaitersMixin, ActivityOpsMixin, ActivitySyncMixin, CacheBackupMixin, WifiDeviceMixin, HubMqttMixin, RestoreMixin, BackupExportMixin, WriteBatchMixin, X2RemotesMixin, VersionInfoMixin):
     def __init__(
         self,
         real_hub_ip: str,
@@ -392,6 +393,7 @@ class X1Proxy(FrameDecodeMixin, IrBlobMixin, CatalogMixin, ExchangeMixin, AckWai
         self._frame_thread_ident: int | None = None
         self._init_write_batch()
         self._init_x2_remotes()
+        self._init_version_info()
         self._macro_payload_lock = threading.Lock()
         # Transient fetch-arrival signals: popped by wait_for_macro_record,
         # cleared by reset_ack_queues before every write transaction.

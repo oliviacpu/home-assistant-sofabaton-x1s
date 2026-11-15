@@ -210,6 +210,12 @@
       },
       "recorded_keypress": {
         "name": "Recorded keypress"
+      },
+      "remote_firmware": {
+        "name": "Remote firmware"
+      },
+      "wifi_firmware": {
+        "name": "Wi-Fi firmware"
       }
     },
     "switch": {

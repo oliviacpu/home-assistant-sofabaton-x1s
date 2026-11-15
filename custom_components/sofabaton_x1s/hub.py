@@ -319,7 +319,12 @@ class SofabatonHub(HubProxyEventsMixin, WifiDeployMixin, HubOpsMixin, HubFetchMi
             self.production_batch,
             self.hub_firmware_version,
         )
-        if banner_changed:
+        # Fork: the Wi-Fi and remote firmware ride on a separate version
+        # exchange; ask once here, before the catalog bursts start (the hub
+        # drops a request sent while a burst is still streaming).
+        version_before = self._proxy.get_version_info()
+        version_info = await self.hass.async_add_executor_job(self._proxy.fetch_version_info)
+        if banner_changed or version_info != version_before:
             self._bump_cache_generation()
             async_dispatcher_send(self.hass, signal_hub(self.entry_id))
         await self._async_persist_cache_if_enabled()
@@ -418,6 +423,11 @@ class SofabatonHub(HubProxyEventsMixin, WifiDeployMixin, HubOpsMixin, HubFetchMi
     def get_app_activations(self) -> list[dict[str, Any]]:
         """Return recent app-originated activation requests."""
         return list(self._app_activations)
+
+    def get_version_info(self) -> dict[str, Any]:
+        """Wi-Fi and remote firmware from the last version exchange (fork)."""
+
+        return self._proxy.get_version_info()
 
     def get_activity_name_by_id(self, act_id: int) -> Optional[str]:
         act = self.activities.get(act_id)

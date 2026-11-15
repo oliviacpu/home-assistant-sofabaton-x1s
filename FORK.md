@@ -40,6 +40,17 @@ tag plus the changes listed below. Upstream's README, `CONTRIBUTING.md` and `doc
 
 Newest first.
 
+### Remote and Wi-Fi firmware sensors (2026-11-15)
+- **What it adds:** diagnostic `sensor.<hub>_remote_firmware` (X1/X1S) and `sensor.<hub>_wifi_firmware`. Upstream
+  documents the version exchange (`REQ_VERSION` 0x0058 → `WIFI_FW` 0x0359 + `INFO_BANNER` 0x112F) but never sends or
+  decodes it, so neither version was visible; the device registry only shows the hub firmware from the banner.
+- **Change:** `lib/proxy_version_info.py` (new mixin; `x1_proxy.py` stays under its 2000-line budget) decodes both
+  frames, `VersionInfoHandler` in `lib/opcode_handlers.py` feeds it from every H→A frame (so the official app's version
+  screen is captured too), and `_async_initial_sync` in `hub.py` asks once, before the catalog bursts. The engine
+  methods are triaged as engine-only in `lib/aio.py`. Sensors in `sensor.py`, names in `translations/en.json`,
+  `docs/entities.md`. Tests: `tests/test_version_info.py`.
+- **Upstream:** not sent.
+
 ### `backup_bundle` can save the bundle to disk (2026-11-15)
 - **What it adds:** `save: true` writes the bundle to `<config>/sofabaton-backups/hub/<hub MAC>-<UTC time>.json`
   (mode 0600, written to a temporary name and renamed) and `keep: N` deletes that hub's older files there. Upstream
