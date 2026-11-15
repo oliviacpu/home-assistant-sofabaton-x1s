@@ -1,0 +1,80 @@
+name: Fork release
+
+# The fork's only workflow (FORK.md): an oliviacpu-* tag is tested, built
+# into the HACS zip and published as a GitHub Release.
+on:
+  push:
+    tags: ["oliviacpu-*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check the manifest version matches the tag
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#oliviacpu-}"
+          IFS=. read -r y m d n <<< "$tag"
+          expect="-oliviacpu.${y}${m}${d}${n:+.$n}"
+          version="$(python3 -c 'import json; print(json.load(open("custom_components/sofabaton_x1s/manifest.json"))["version"])')"
+          echo "tag $GITHUB_REF_NAME, manifest $version, expected suffix $expect"
+          [[ "$version" == *"$expect" ]] || { echo "manifest version does not match the tag"; exit 1; }
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install pytest
+
+      - name: Python tests
+        run: pytest tests -q
+
+      - name: Build frontend assets
+        run: |
+          npm run typecheck
+          npm run build:frontend
+
+      - name: Verify Control Panel locale modules
+        shell: bash
+        run: |
+          for locale in en-gb de es fr nl zh-hans; do
+            test -s "custom_components/sofabaton_x1s/www/tools-card-locales/${locale}.js"
+          done
+
+      - name: Zip integration directory
+        working-directory: custom_components/sofabaton_x1s
+        run: zip -r ../../sofabaton_x1s.zip . -x "www/src/*" -x "*/__pycache__/*"
+
+      - name: Verify release archive
+        shell: bash
+        run: |
+          for locale in en-gb de es fr nl zh-hans; do
+            unzip -Z1 sofabaton_x1s.zip | grep -qx "www/tools-card-locales/${locale}.js"
+          done
+          unzip -Z1 sofabaton_x1s.zip | grep -qx "manifest.json"
+          if unzip -Z1 sofabaton_x1s.zip | grep -q '^www/src/'; then
+            echo "Frontend TypeScript sources must not be included in the release archive."
+            exit 1
+          fi
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: sofabaton_x1s.zip
+          generate_release_notes: true
