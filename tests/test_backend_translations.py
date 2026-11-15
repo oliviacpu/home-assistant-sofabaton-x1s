@@ -111,6 +111,7 @@ def test_all_entity_names_use_translation_keys() -> None:
             "remote_vol_up",
             "remote_yellow",
         },
+        "event": {"button_press", "hub_event"},
         "infrared": {"ir_emitter"},
         "remote": {"remote"},
         "select": {"activity"},
@@ -128,6 +129,8 @@ def test_all_entity_names_use_translation_keys() -> None:
     entity_class_counts = {
         "binary_sensor": 2,
         "button": 3,
+        # Fork: both event entities share one base class.
+        "event": 1,
         "infrared": 1,
         "remote": 1,
         "select": 1,

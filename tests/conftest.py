@@ -329,6 +329,27 @@ def _install_homeassistant_stubs() -> None:
     button.ButtonEntity = ButtonEntity
     sys.modules.setdefault("homeassistant.components.button", button)
 
+    event = types.ModuleType("homeassistant.components.event")
+
+    class EventEntity:  # pragma: no cover - only used as stub
+        def async_on_remove(self, *args, **kwargs):
+            return None
+
+        def async_write_ha_state(self):
+            return None
+
+        def _trigger_event(self, event_type, event_attributes=None):
+            if event_type not in getattr(self, "_attr_event_types", []):
+                raise ValueError(f"Invalid event type {event_type}")
+            self.fired = [*getattr(self, "fired", []), (event_type, dict(event_attributes or {}))]
+
+    class EventDeviceClass:  # pragma: no cover - only used as stub
+        BUTTON = "button"
+
+    event.EventEntity = EventEntity
+    event.EventDeviceClass = EventDeviceClass
+    sys.modules.setdefault("homeassistant.components.event", event)
+
     text = types.ModuleType("homeassistant.components.text")
 
     class TextEntity:  # pragma: no cover - only used as stub

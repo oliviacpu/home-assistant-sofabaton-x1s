@@ -154,6 +154,32 @@
         "name": "Yellow button"
       }
     },
+    "event": {
+      "button_press": {
+        "name": "Button press",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short": "Short press",
+              "long": "Long press"
+            }
+          }
+        }
+      },
+      "hub_event": {
+        "name": "Hub event",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "activity_start": "Activity started",
+              "activity_stop": "Activity stopped",
+              "power_off": "Powered off",
+              "redundant_off": "OFF pressed while off"
+            }
+          }
+        }
+      }
+    },
     "infrared": {
       "ir_emitter": {
         "name": "IR emitter"

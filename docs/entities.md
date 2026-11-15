@@ -23,8 +23,16 @@ These entities expose state changes and received commands to Home Assistant.
 | ------------- | ----------------------------------- | ------------------------------------------------------ |
 | Sensor        | `sensor.<hub>_activity`             | Current Activity, including while the app is connected |
 | Sensor        | `sensor.<hub>_wifi_commands`        | Latest Wifi Command or Wifi Event press                |
+| Event         | `event.<hub>_button_press`          | Each Wifi Command or Wifi Event press (`short`/`long`) |
+| Event         | `event.<hub>_hub_event`             | Activity started/stopped, powered off, OFF while off   |
 | Binary sensor | `binary_sensor.<hub>_hub_connected` | Physical hub connection state                          |
 | Binary sensor | `binary_sensor.<hub>_app_connected` | Official-app proxy connection state                    |
+
+The two event entities fire for every occurrence; their state is the time of the last one and the `event_type`
+attribute says which it was. `event.<hub>_button_press` carries `device`, `device_id`, `command`, `command_index` and
+`transport`. `event.<hub>_hub_event` carries `activity`/`activity_id` (the activity that started, stopped or was
+running before power-off) and the `from_`/`to_` pair of the transition; an activity switch fires `activity_stop` then
+`activity_start`. Trigger on a state change of the entity and read `trigger.to_state.attributes.event_type`.
 
 For Wifi Commands, Wifi Events, Hub Events, Activity Events, and a sensor automation example, see the [remote and hub trigger guide](wifi_commands.md).
 

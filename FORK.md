@@ -40,6 +40,18 @@ tag plus the changes listed below. Upstream's README, `CONTRIBUTING.md` and `doc
 
 Newest first.
 
+### Event entities for remote presses and hub transitions (2026-11-15)
+- **What it adds:** `event.<hub>_button_press` fires on every Wifi Command or Wifi Event press (`short`/`long`, with
+  device, command and transport). `event.<hub>_hub_event` fires on `activity_start`, `activity_stop`, `power_off` and
+  `redundant_off` (OFF pressed while already off). Upstream exposes presses only through a sensor that pulses for 0.3 s,
+  and hub events only to the Control Panel and its configured Actions, so neither was a dependable automation trigger.
+- **Change:** `event.py` (new), `"event"` in `PLATFORMS` (`const.py`), names in `translations/en.json`,
+  `docs/entities.md`. Both entities subscribe to dispatcher signals upstream already sends (`signal_ip_commands`,
+  `signal_hub_events`); the sensor, Actions and hooks are untouched. The press record's raw HTTP path, headers and body
+  are not copied into the state machine. Tests: `tests/test_event_platform.py`, plus the pinned key list in
+  `tests/test_backend_translations.py` and an `event` stub in `tests/conftest.py`.
+- **Upstream:** not sent.
+
 <!-- Entry format:
 ### Short title (YYYY-MM-DD)
 - **What it adds or fixes:** the problem.
