@@ -59,7 +59,9 @@ jobs:
 
       - name: Zip integration directory
         working-directory: custom_components/sofabaton_x1s
-        run: zip -r ../../sofabaton_x1s.zip . -x "www/src/*" -x "*/__pycache__/*"
+        # The test step leaves __pycache__ folders behind, the top-level one
+        # included; none of them belongs in the archive.
+        run: zip -r ../../sofabaton_x1s.zip . -x "www/src/*" -x "__pycache__/*" -x "*/__pycache__/*"
 
       - name: Verify release archive
         shell: bash
@@ -70,6 +72,10 @@ jobs:
           unzip -Z1 sofabaton_x1s.zip | grep -qx "manifest.json"
           if unzip -Z1 sofabaton_x1s.zip | grep -q '^www/src/'; then
             echo "Frontend TypeScript sources must not be included in the release archive."
+            exit 1
+          fi
+          if unzip -Z1 sofabaton_x1s.zip | grep -q '__pycache__/'; then
+            echo "Compiled Python caches must not be included in the release archive."
             exit 1
           fi
 
