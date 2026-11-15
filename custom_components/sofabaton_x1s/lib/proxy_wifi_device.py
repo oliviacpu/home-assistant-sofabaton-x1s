@@ -110,6 +110,31 @@ MAX_WIFI_DEVICE_RECORDS = 100
 _ROKU_APP_SLOTS: list[tuple[int, int]] = [
     (0x18 + idx, 0x4E21 + idx) for idx in range(MAX_WIFI_DEVICE_RECORDS)
 ]
+#: Fork (FORK.md): the X1S/X2 virtual-IP flow addresses a record by its
+#: one-byte command id (``(idx + 1) & 0xFF``), so 255 is that flow's
+#: protocol ceiling; it doesn't use the X1 key-id table above. How far a
+#: given hub firmware accepts records past the benched 100 is a live check.
+MAX_WIFI_RECORDS_VIRTUAL_IP = 255
+
+
+def max_wifi_device_records(hub_version: str | None) -> int:
+    """Most command records one Wifi device can hold on ``hub_version``.
+
+    X1 is bounded by its key-id table (100, bench_140); X1S/X2 by the
+    one-byte command id of the virtual-IP flow.
+    """
+
+    if hub_version in (HUB_VERSION_X1S, HUB_VERSION_X2):
+        return MAX_WIFI_RECORDS_VIRTUAL_IP
+    return MAX_WIFI_DEVICE_RECORDS
+
+
+def max_wifi_slot_count(hub_version: str | None, *, single_record: bool) -> int:
+    """Most slots a Wifi record can have: one hub record per slot for the
+    Wifi Events device, a short and a long record per slot otherwise."""
+
+    records = max_wifi_device_records(hub_version)
+    return records if single_record else records // 2
 
 
 _ROKU_X1S_INPUT_FINALIZE_HEADER = _hex_to_bytes(
@@ -1058,7 +1083,7 @@ class WifiDeviceMixin(_ProxyHost if TYPE_CHECKING else object):
             return None
 
         request_ip = ipaddress.IPv4Address(ip_address).packed
-        for idx, command_spec in enumerate((commands or [])[: len(_ROKU_APP_SLOTS)]):
+        for idx, command_spec in enumerate((commands or [])[:MAX_WIFI_RECORDS_VIRTUAL_IP]):
             slot = (idx + 1) & 0xFF
             if isinstance(command_spec, dict):
                 command_name = _wifi_command_label(command_spec, idx)
@@ -1160,7 +1185,7 @@ class WifiDeviceMixin(_ProxyHost if TYPE_CHECKING else object):
             brand_name=brand_name,
             device_class=DEVICE_CLASS_WIFI_IP,
             device_class_code=0x1C,
-            commands=list(commands or [])[: len(_ROKU_APP_SLOTS)],
+            commands=list(commands or [])[:MAX_WIFI_RECORDS_VIRTUAL_IP],
         )
 
         if not self._apply_virtual_ip_wifi_power_configuration(

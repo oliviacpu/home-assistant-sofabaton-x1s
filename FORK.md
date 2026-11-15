@@ -40,6 +40,22 @@ tag plus the changes listed below. Upstream's README, `CONTRIBUTING.md` and `doc
 
 Newest first.
 
+### Wifi slot counts are a setting, up to the hub's protocol ceiling (2026-11-15)
+- **What it adds:** `sofabaton_x1s.set_wifi_slot_count` sets the slot count of the Wifi Events device (default) or a
+  named Wifi Device through the store. Upstream fixes it at record creation (25 events, 10 per device), so raising it
+  meant hand-editing `.storage/sofabaton_x1s.command_config` (this install went 25 → 27 → 50 → 100 that way).
+- **Cause (two caps):** upstream clamps persisted counts at the benched 100 (`_MAX_RECORD_SLOT_COUNT`) and **resets**
+  anything past it to the default, so a hand-set 128 would have synced back down to 25 and deleted the rest; the
+  X1S/X2 create path also truncated every device to the X1 key-id table's 100 entries.
+- **Change:** `lib/proxy_wifi_device.py` gains `max_wifi_device_records` / `max_wifi_slot_count`: X1 keeps its 100-entry
+  table; X1S/X2 (virtual-IP flow, one-byte command id) go to 255, halved for devices with long records. The persisted
+  clamp is 255; the deploy guard in `wifi_deploy.py` uses the model's ceiling and now stops a sync with a count past
+  it instead of falling back to 10 (which deployed, so deleted, all but ten slots). Shrinking is refused while a cut
+  slot is in use. `command_config.py` (`async_set_record_slot_count`), `services.py`, `services.yaml`,
+  `translations/en.json`, `docs/actions.md`, `docs/wifi_commands.md`. Tests: `tests/test_wifi_slot_count.py`.
+- **Live check:** an X1S accepting more than 100 records is not benched yet (upstream validated 1..100).
+- **Upstream:** not sent.
+
 ### Remote and Wi-Fi firmware sensors (2026-11-15)
 - **What it adds:** diagnostic `sensor.<hub>_remote_firmware` (X1/X1S) and `sensor.<hub>_wifi_firmware`. Upstream
   documents the version exchange (`REQ_VERSION` 0x0058 → `WIFI_FW` 0x0359 + `INFO_BANNER` 0x112F) but never sends or

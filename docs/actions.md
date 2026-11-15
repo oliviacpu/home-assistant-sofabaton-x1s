@@ -36,6 +36,7 @@ filter by `sofabaton_x1s`.
 | `sofabaton_x1s.set_wifi_command` | Write the HTTP request of one command on a Generic HTTP (`wifi_ip`) device | Yes |
 | `sofabaton_x1s.export_snapshot` | Return the cached structural `hub_bundle` and its cache generation | Yes |
 | `sofabaton_x1s.sync_from_snapshot` | Apply a targeted Activity or Device edit from baseline and edited snapshots | Yes |
+| `sofabaton_x1s.set_wifi_slot_count` | Set how many slots the Wifi Events device or a Wifi Device has | Yes |
 | `sofabaton_x1s.backup_bundle` | Read a `hub_bundle` JSON payload covering devices and (optionally) all activities | Yes |
 | `sofabaton_x1s.restore_backup` | Restore a `hub_bundle` payload onto the live hub | Yes |
 
@@ -780,6 +781,36 @@ data:
   baseline: "{{ snapshot.bundle }}"
   edited: "{{ edited_bundle }}"
 response_variable: sync_result
+```
+
+---
+
+## ◇ `sofabaton_x1s.set_wifi_slot_count`
+
+Sets how many slots the Wifi Events device (the default target) or a named
+Wifi Device has, within what the hub model holds. Nothing is written to the
+hub: the record then shows that it needs a sync, and the next **Sync**
+(Control Panel, or `sofabaton_x1s.sync_command_config` with
+`device_key: haevents` for the Wifi Events device) rebuilds it.
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | :------: | ----------- |
+| `device` | HA Device | Yes | Your Sofabaton hub. |
+| `slot_count` | int | Yes | New slot count. Wifi Events: up to 255 on X1S/X2, 100 on X1. A Wifi Device takes a short and a long record per slot, so up to 127 on X1S/X2 and 50 on X1. |
+| `wifi_device` | string | No | A Wifi Device's name as the Wifi Commands tab shows it. Omit to change the Wifi Events device. |
+
+Shrinking is refused while a slot that would be cut is configured or holds a
+power command. Past 100 records only the protocol bounds the count; how many a
+given hub firmware accepts is up to the hub, so check that the new slots arrive
+after the sync. Response: `{device_key, previous_slot_count, slot_count,
+max_slot_count}`.
+
+```yaml
+action: sofabaton_x1s.set_wifi_slot_count
+data:
+  device: 89c3874a93f1e9ee0f49e24a2710535e
+  slot_count: 128
+response_variable: result
 ```
 
 ---

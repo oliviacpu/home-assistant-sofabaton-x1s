@@ -16,9 +16,11 @@ from urllib.parse import urlsplit
 
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import CONF_MAC, DOMAIN
+from .const import CONF_MAC, DOMAIN, signal_command_sync
 from .command_config import (
+    WIFI_EVENTS_DEVICE_KEY,
     CommandConfigStore,
     is_wifi_events_device_key,
     normalize_command_id_list,
@@ -32,6 +34,7 @@ from .lib.device_class_profiles import supported_create_classes
 from .lib.devices import validate_appearance
 from .lib.payloads import NetworkCommand
 from .lib.protocol_const import DEVICE_CLASS_WIFI_IP, normalize_device_class
+from .lib.proxy_wifi_device import max_wifi_slot_count
 from . import bundle_files
 from . import runtime
 from . import entity_sync
@@ -993,6 +996,45 @@ async def _async_handle_sync_command_config(call: ServiceCall):
     )
 
 
+async def _async_handle_set_wifi_slot_count(call: ServiceCall):
+    """Service handler for ``sofabaton_x1s.set_wifi_slot_count`` (fork).
+
+    Sets how many slots the Wifi Events record (default) or a named Wifi
+    Device has, within what this hub model can hold, through the store
+    instead of a hand edit. Nothing is written to the hub: the record
+    reads as needing a sync, and the next Sync rebuilds it.
+    """
+
+    hass = call.hass
+    hub = await runtime._async_resolve_hub_from_call(hass, call)
+    if hub is None:
+        raise ValueError("Could not resolve Sofabaton hub from service call")
+
+    store = await runtime._async_get_command_config_store(hass)
+    wifi_device = str(call.data.get("wifi_device") or "").strip()
+    if wifi_device:
+        device_key = await _async_pick_wifi_device_key(
+            store,
+            hub.entry_id,
+            wifi_device,
+            roku_listen_port=runtime._resolve_roku_listen_port(hass, hub.entry_id),
+        )
+    else:
+        device_key = WIFI_EVENTS_DEVICE_KEY
+    max_slots = max_wifi_slot_count(
+        getattr(hub, "version", None), single_record=is_wifi_events_device_key(device_key)
+    )
+    try:
+        result = await store.async_set_record_slot_count(
+            hub.entry_id, str(device_key or ""), call.data.get("slot_count"), max_slot_count=max_slots
+        )
+    except KeyError as exc:
+        what = f"Wifi Device {wifi_device!r}" if wifi_device else "Wifi Events record (create an event first)"
+        raise HomeAssistantError(f"This hub has no {what}") from exc
+    async_dispatcher_send(hass, signal_command_sync(hub.entry_id))
+    return {**result, "max_slot_count": max_slots}
+
+
 async def _async_handle_export_snapshot(call: ServiceCall):
     """Service handler for ``sofabaton_x1s.export_snapshot``.
 
@@ -1143,6 +1185,7 @@ SERVICES: tuple[tuple[str, Callable[[ServiceCall], Any], bool], ...] = (
     ("delete_favorite", _async_handle_delete_favorite, False),
     ("command_to_button", _async_handle_command_to_button, False),
     ("sync_command_config", _async_handle_sync_command_config, False),
+    ("set_wifi_slot_count", _async_handle_set_wifi_slot_count, True),
     ("export_snapshot", _async_handle_export_snapshot, True),
     ("sync_from_snapshot", _async_handle_sync_from_snapshot, True),
 )

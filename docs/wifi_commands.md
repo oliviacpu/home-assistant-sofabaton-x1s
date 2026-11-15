@@ -27,7 +27,7 @@ Configuring Actions is optional. Every received Wifi Command and Wifi Event upda
 
 Wifi Commands are the command-centric path: start with a Home Assistant behavior, expose it as a command on a managed Wifi Device, and declare where it should appear or run. The integration batches the required changes across Sofabaton's devices and Activities.
 
-Each hub supports up to **5 user-managed Wifi Devices**, with **10 command slots** per device. The reserved Wifi Events device does not count toward this limit.
+Each hub supports up to **5 user-managed Wifi Devices**, with **10 command slots** per device. The reserved Wifi Events device does not count toward this limit. A device's slot count can be raised with the [`sofabaton_x1s.set_wifi_slot_count`](actions.md#-sofabaton_x1sset_wifi_slot_count) action (up to 127 on X1S/X2 and 50 on X1, since each slot takes a short and a long record).
 
 ### Create and deploy a Wifi Device
 
@@ -66,7 +66,7 @@ Wifi Commands owns the managed device's commands, power/input settings, and butt
 
 A Wifi Event is the editor-native path: start from the place where something should happen, then add a named Home Assistant trigger there. Events can be used in Activity shortcuts, short- or long-press physical-button assignments, macros, startup and shutdown sequences, and Activity inputs. The editor batches the dependent Sofabaton changes when you sync.
 
-Each hub supports up to **25 Wifi Events** on X1, X1S, and X2.
+Each hub starts with **25 Wifi Events** on X1, X1S, and X2. Raise the number with the [`sofabaton_x1s.set_wifi_slot_count`](actions.md#-sofabaton_x1sset_wifi_slot_count) action, up to 255 on X1S/X2 (one record per event) and 100 on X1, then select **Sync**.
 
 ### Create and deploy a Wifi Event
 

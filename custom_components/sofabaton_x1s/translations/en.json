@@ -707,6 +707,24 @@
         }
       }
     },
+    "set_wifi_slot_count": {
+      "name": "Set Wifi slot count",
+      "description": "Sets how many slots the Wifi Events device (default) or a named Wifi Device has, up to what this hub model holds. Nothing is written to the hub: the record then needs a sync, and the next Sync rebuilds it. Shrinking is refused while a slot that would be cut is in use.",
+      "fields": {
+        "device": {
+          "name": "Sofabaton hub",
+          "description": "Hub the Wifi record belongs to."
+        },
+        "slot_count": {
+          "name": "Slot count",
+          "description": "New number of slots. Wifi Events take one hub record per slot; a Wifi Device takes two (short and long press), so its limit is half."
+        },
+        "wifi_device": {
+          "name": "Wifi Device",
+          "description": "Name of a Wifi Device as the Wifi Commands tab shows it. Omit to change the Wifi Events device."
+        }
+      }
+    },
     "sync_from_snapshot": {
       "name": "Sync edited snapshot",
       "description": "Script-callable counterpart of the live Control Panel editor's save action. Diffs the baseline against the edited snapshot (both hub_bundle payloads from the export hub snapshot action) and writes only the rows that changed for the selected activity or device. Fails if a backup, restore, or sync operation is already running for this hub, or if the app client currently owns the hub.",

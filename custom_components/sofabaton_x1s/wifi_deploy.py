@@ -27,6 +27,7 @@ from .const import (
 )
 from . import hub_mqtt_link
 from .lib.wifi_device import WIFI_PROBE_COMMAND_ID
+from .lib.proxy_wifi_device import max_wifi_slot_count
 from .lib.wifi_inplace_plan import (
     REFERENCED_RECORD_STEP_KINDS,
     baseline_snapshot_from_bundle,
@@ -1124,8 +1125,17 @@ class WifiDeployMixin:
                 slot_count = int(command_payload.get("slot_count"))
             except (TypeError, ValueError):
                 slot_count = _WIFI_COMMAND_SLOT_COUNT
-            if not (1 <= slot_count <= 100):
-                slot_count = _WIFI_COMMAND_SLOT_COUNT
+            # Fork: the ceiling is the hub model's (max_wifi_slot_count), and
+            # a count past it stops the sync instead of falling back to 10,
+            # which would have deployed (and so deleted) all but ten slots.
+            max_slots = max_wifi_slot_count(
+                getattr(self, "version", None), single_record=is_wifi_events_device_key(normalized_device_key)
+            )
+            if not (1 <= slot_count <= max_slots):
+                raise WifiSyncError(
+                    "sync_failed",
+                    f"This Wifi record has {slot_count} slots; this hub takes at most {max_slots}.",
+                )
             configured_slots = count_configured_command_slots(
                 commands,
                 slot_count=slot_count,
