@@ -53,7 +53,11 @@ Newest first.
   it instead of falling back to 10 (which deployed, so deleted, all but ten slots). Shrinking is refused while a cut
   slot is in use. `command_config.py` (`async_set_record_slot_count`), `services.py`, `services.yaml`,
   `translations/en.json`, `docs/actions.md`, `docs/wifi_commands.md`. Tests: `tests/test_wifi_slot_count.py`.
-- **Live check:** an X1S accepting more than 100 records is not benched yet (upstream validated 1..100).
+- **Live (X1S, hub firmware 5, 2026-11-15):** Wifi Events 100 → 128 synced in place on the same hub device (30 steps,
+  2 min 14 s); the hub's catalog lists ids 1..128, and slots 101 and 128 played by the hub reached Home Assistant.
+  Known limit past ~120 records: the hub answers the device key-sort read (`0x0162`) in two family-0x63 pages
+  (255 + 9 bytes) instead of one frame, so that read times out twice (5 s each) and the sync writes the sort without
+  it. The write is paged and accepted; the sync only takes about 10 s longer.
 - **Upstream:** not sent.
 
 ### Wi-Fi firmware sensor (2026-11-15)
