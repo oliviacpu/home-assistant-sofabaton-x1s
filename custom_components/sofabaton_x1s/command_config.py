@@ -48,8 +48,11 @@ WIFI_EVENTS_DEVICE_NAME = "Wifi Events"
 # this into deployed ids, so records created before this change keep their
 # original count until recreated.
 WIFI_EVENTS_SLOT_COUNT = 25
-# Defensive clamp for persisted per-record slot counts.
-_MAX_RECORD_SLOT_COUNT = 100
+# Defensive clamp for persisted per-record slot counts. Fork (FORK.md):
+# the protocol ceiling (one-byte command id) instead of the benched 100;
+# the per-model limit is enforced where a count is set or deployed
+# (lib/proxy_wifi_device.max_wifi_slot_count).
+_MAX_RECORD_SLOT_COUNT = 255
 
 DEFAULT_COMMAND_ACTION = {"action": "perform-action"}
 
@@ -1286,6 +1289,55 @@ class CommandConfigStore:
             device["activity_labels"] = _normalize_activity_labels(activity_labels)
         await self._save()
         return self._payload_for_device(device, roku_listen_port=roku_listen_port)
+
+    async def async_set_record_slot_count(
+        self,
+        entry_id: str,
+        device_key: str,
+        slot_count: Any,
+        *,
+        max_slot_count: int,
+    ) -> dict[str, Any]:
+        """Change a Wifi record's slot count (fork, FORK.md).
+
+        Growing pads the record with empty slots; shrinking is refused
+        while a slot it would cut is configured or holds a power command.
+        The record then reads as needing a sync (its commands hash moves),
+        and the next sync rebuilds it on the hub.
+        """
+
+        try:
+            count = int(slot_count)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("slot_count must be a whole number") from exc
+        if isinstance(slot_count, bool) or count < 1 or count > int(max_slot_count):
+            raise ValueError(f"slot_count must be between 1 and {int(max_slot_count)} on this hub")
+
+        device = self._find_hub_device_record(entry_id, device_key)
+        key = device["device_key"]
+        single = is_wifi_events_device_key(key)
+        previous = _record_slot_count(key, device.get("slot_count"))
+        commands = normalize_commands(device.get("commands"), slot_count=previous, single_record=single)
+        defaults = default_commands(previous)
+        cut = [
+            idx + 1
+            for idx, slot in enumerate(commands)
+            if idx >= count and _normalize_slot(slot, idx) != _normalize_slot(defaults[idx], idx)
+        ]
+        for field in ("power_on_command_id", "power_off_command_id"):
+            command_id = normalize_power_command_id(device.get(field))
+            if command_id is not None and command_id > count:
+                cut.append(command_id)
+        if cut:
+            listed = ", ".join(str(n) for n in sorted(set(cut)))
+            raise ValueError(
+                f"slots {listed} are still in use; clear them before shrinking to {count} slots"
+            )
+
+        device["slot_count"] = count
+        device["commands"] = normalize_commands(commands, slot_count=count, single_record=single)
+        await self._save()
+        return {"device_key": key, "previous_slot_count": previous, "slot_count": count}
 
     # ── Wifi Events (reserved `haevents` record) ────────────────────────
     #

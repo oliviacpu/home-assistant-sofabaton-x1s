@@ -111,6 +111,7 @@ def test_all_entity_names_use_translation_keys() -> None:
             "remote_vol_up",
             "remote_yellow",
         },
+        "event": {"button_press", "hub_event"},
         "infrared": {"ir_emitter"},
         "remote": {"remote"},
         "select": {"activity"},
@@ -120,6 +121,8 @@ def test_all_entity_names_use_translation_keys() -> None:
             "ip_commands",
             "ir_intercept",
             "recorded_keypress",
+            "remote_firmware",
+            "wifi_firmware",
         },
         "switch": {"hex_logging", "proxy", "wifi_device"},
         "text": {"hub_ip_address", "local_ip_address"},
@@ -128,10 +131,13 @@ def test_all_entity_names_use_translation_keys() -> None:
     entity_class_counts = {
         "binary_sensor": 2,
         "button": 3,
+        # Fork: both event entities share one base class.
+        "event": 1,
         "infrared": 1,
         "remote": 1,
         "select": 1,
-        "sensor": 5,
+        # Fork: + the firmware sensor class (two entities).
+        "sensor": 6,
         "switch": 3,
         "text": 2,
     }

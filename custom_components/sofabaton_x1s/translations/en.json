@@ -154,6 +154,32 @@
         "name": "Yellow button"
       }
     },
+    "event": {
+      "button_press": {
+        "name": "Button press",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "short": "Short press",
+              "long": "Long press"
+            }
+          }
+        }
+      },
+      "hub_event": {
+        "name": "Hub event",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "activity_start": "Activity started",
+              "activity_stop": "Activity stopped",
+              "power_off": "Powered off",
+              "redundant_off": "OFF pressed while off"
+            }
+          }
+        }
+      }
+    },
     "infrared": {
       "ir_emitter": {
         "name": "IR emitter"
@@ -184,6 +210,12 @@
       },
       "recorded_keypress": {
         "name": "Recorded keypress"
+      },
+      "remote_firmware": {
+        "name": "Remote firmware"
+      },
+      "wifi_firmware": {
+        "name": "Wi-Fi firmware"
       }
     },
     "switch": {
@@ -209,7 +241,7 @@
   "services": {
     "backup_bundle": {
       "name": "Back up hub bundle",
-      "description": "Returns a `hub_bundle` JSON payload. Omit device IDs to back up all devices and activities, or provide device IDs to back up only those devices.",
+      "description": "Returns a `hub_bundle` JSON payload. Omit device IDs to back up all devices and activities, or provide device IDs to back up only those devices. With Save, the bundle is also written to `sofabaton-backups/hub/` in the configuration folder.",
       "fields": {
         "device": {
           "name": "Sofabaton hub",
@@ -218,6 +250,14 @@
         "device_ids": {
           "name": "Device IDs",
           "description": "Optional list of device IDs from 1 through 255. Omit it or provide an empty list to back up the whole hub."
+        },
+        "save": {
+          "name": "Save to disk",
+          "description": "Also write the bundle to `sofabaton-backups/hub/<hub MAC>-<UTC time>.json` in the Home Assistant configuration folder. An incomplete bundle (for example while the Sofabaton app holds the hub) is refused and not written."
+        },
+        "keep": {
+          "name": "Keep",
+          "description": "With Save: how many of this hub's saved bundles to keep. Older ones in that folder are deleted after the new one is written. Omit to keep all."
         }
       }
     },
@@ -664,6 +704,24 @@
         "device_key": {
           "name": "Wifi Device key",
           "description": "Internal key of the Wifi Device to deploy. The card sends it; automations use Wifi Device instead."
+        }
+      }
+    },
+    "set_wifi_slot_count": {
+      "name": "Set Wifi slot count",
+      "description": "Sets how many slots the Wifi Events device (default) or a named Wifi Device has, up to what this hub model holds. Nothing is written to the hub: the record then needs a sync, and the next Sync rebuilds it. Shrinking is refused while a slot that would be cut is in use.",
+      "fields": {
+        "device": {
+          "name": "Sofabaton hub",
+          "description": "Hub the Wifi record belongs to."
+        },
+        "slot_count": {
+          "name": "Slot count",
+          "description": "New number of slots. Wifi Events take one hub record per slot; a Wifi Device takes two (short and long press), so its limit is half."
+        },
+        "wifi_device": {
+          "name": "Wifi Device",
+          "description": "Name of a Wifi Device as the Wifi Commands tab shows it. Omit to change the Wifi Events device."
         }
       }
     },

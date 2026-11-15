@@ -64,6 +64,7 @@ PLATFORMS = [
     "sensor",
     "remote",
     "text",
+    "event",
 ]
 
 

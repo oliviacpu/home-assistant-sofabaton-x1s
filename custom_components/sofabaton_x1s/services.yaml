@@ -112,6 +112,17 @@ backup_bundle:
       required: false
       selector:
         object:
+    save:
+      required: false
+      selector:
+        boolean:
+    keep:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 1000
+          mode: box
 
 restore_backup:
   fields:
@@ -459,6 +470,25 @@ sync_command_config:
     device_key:
       required: false
       advanced: true
+      selector:
+        text:
+
+set_wifi_slot_count:
+  fields:
+    device:
+      required: true
+      selector:
+        device:
+          integration: sofabaton_x1s
+    slot_count:
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 255
+          mode: box
+    wifi_device:
+      required: false
       selector:
         text:
 
