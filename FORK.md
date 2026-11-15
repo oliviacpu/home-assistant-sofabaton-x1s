@@ -72,7 +72,9 @@ Newest first.
   (mode 0600, written to a temporary name and renamed) and `keep: N` deletes that hub's older files there. Upstream
   only returns the bundle, and an automation has no built-in way to write a response to a file, so scheduled backups
   weren't possible. A bundle that isn't `complete` (the Sofabaton app holding the hub, for one) is refused with an
-  error instead of being saved as a backup. Without `save` the action behaves exactly as upstream's.
+  error instead of being saved as a backup. With `save` the response is a summary (counts, `saved_path`, `pruned`)
+  rather than the bundle, so a scheduled backup doesn't copy it into every stored trace (2026-11-15.2). Without `save`
+  the action behaves exactly as upstream's.
 - **Change:** `bundle_files.py` (new, no Home Assistant imports), `_async_handle_backup_bundle` in `services.py`,
   `services.yaml`, `translations/en.json`, `docs/actions.md`. Tests: `tests/test_backup_bundle_save.py`.
 - **Upstream:** not sent.

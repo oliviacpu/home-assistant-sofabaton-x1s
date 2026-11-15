@@ -843,6 +843,10 @@ backup.
 | `saved_path` | With `save`: the file written. |
 | `pruned` | With `save`: the files `keep` deleted. |
 
+With `save`, the response is a summary instead of the bundle: `kind`, `schema_version`, `captured_at`, `complete`,
+`devices` and `activities` (counts), `saved_path` and `pruned`. The file holds the bundle, and a scheduled backup
+doesn't copy hundreds of kilobytes into every stored trace.
+
 ```yaml
 action: sofabaton_x1s.backup_bundle
 data:
